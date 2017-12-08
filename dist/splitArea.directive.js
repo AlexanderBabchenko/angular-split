@@ -8,6 +8,7 @@ var SplitAreaDirective = (function () {
         this._order = null;
         this._size = null;
         this._minSizePixel = 0;
+        this._minSizePercent = 0;
         this._visible = true;
         this.visibility = "block";
         this.eventsLockFct = [];
@@ -15,7 +16,7 @@ var SplitAreaDirective = (function () {
     Object.defineProperty(SplitAreaDirective.prototype, "order", {
         set: function (v) {
             this._order = !isNaN(v) ? v : null;
-            this.split.updateArea(this, this._order, this._size, this._minSizePixel);
+            this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
         },
         enumerable: true,
         configurable: true
@@ -23,7 +24,7 @@ var SplitAreaDirective = (function () {
     Object.defineProperty(SplitAreaDirective.prototype, "size", {
         set: function (v) {
             this._size = !isNaN(v) ? v : null;
-            this.split.updateArea(this, this._order, this._size, this._minSizePixel);
+            this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
         },
         enumerable: true,
         configurable: true
@@ -31,7 +32,15 @@ var SplitAreaDirective = (function () {
     Object.defineProperty(SplitAreaDirective.prototype, "minSizePixel", {
         set: function (v) {
             this._minSizePixel = (!isNaN(v) && v > 0) ? v : 0;
-            this.split.updateArea(this, this._order, this._size, this._minSizePixel);
+            this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SplitAreaDirective.prototype, "minSizePercent", {
+        set: function (v) {
+            this._minSizePercent = (!isNaN(v) && v > 0) ? v : 0;
+            this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
         },
         enumerable: true,
         configurable: true
@@ -54,7 +63,7 @@ var SplitAreaDirective = (function () {
         configurable: true
     });
     SplitAreaDirective.prototype.ngOnInit = function () {
-        this.split.addArea(this, this._order, this._size, this._minSizePixel);
+        this.split.addArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
     };
     SplitAreaDirective.prototype.lockEvents = function () {
         this.eventsLockFct.push(this.renderer.listen(this.elementRef.nativeElement, 'selectstart', function (e) { return false; }));
@@ -106,6 +115,7 @@ SplitAreaDirective.propDecorators = {
     'order': [{ type: Input },],
     'size': [{ type: Input },],
     'minSizePixel': [{ type: Input },],
+    'minSizePercent': [{ type: Input },],
     'visible': [{ type: Input },],
 };
 //# sourceMappingURL=splitArea.directive.js.map

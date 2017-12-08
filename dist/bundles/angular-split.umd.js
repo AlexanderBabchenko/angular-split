@@ -81,23 +81,25 @@ var SplitComponent = (function () {
             this.refresh();
         }
     };
-    SplitComponent.prototype.addArea = function (component, orderUser, sizeUser, minPixel) {
+    SplitComponent.prototype.addArea = function (component, orderUser, sizeUser, minPixel, minPercent) {
         this.areas.push({
             component: component,
             orderUser: orderUser,
             order: -1,
             sizeUser: sizeUser,
             size: -1,
-            minPixel: minPixel
+            minPixel: minPixel,
+            minPercent: minPercent || this.minPercent
         });
         this.refresh();
     };
-    SplitComponent.prototype.updateArea = function (component, orderUser, sizeUser, minPixel) {
+    SplitComponent.prototype.updateArea = function (component, orderUser, sizeUser, minPixel, minPercent) {
         var item = this.areas.find(function (a) { return a.component === component; });
         if (item) {
             item.orderUser = orderUser;
             item.sizeUser = sizeUser;
             item.minPixel = minPixel;
+            item.minPercent = minPercent || this.minPercent;
             this.refresh();
         }
     };
@@ -127,7 +129,6 @@ var SplitComponent = (function () {
         return visibleAreas.length > 0 ? area === visibleAreas[visibleAreas.length - 1] : false;
     };
     SplitComponent.prototype.refresh = function () {
-        var _this = this;
         this.stopDragging();
         var visibleAreas = this.visibleAreas;
         // ORDERS: Set css 'order' property depending on user input or added order
@@ -141,7 +142,7 @@ var SplitComponent = (function () {
         });
         // SIZES: Set css 'flex-basis' property depending on user input or equal sizes
         var totalSize = visibleAreas.map(function (a) { return a.sizeUser; }).reduce(function (acc, s) { return acc + s; }, 0);
-        var nbCorrectSize = visibleAreas.filter(function (a) { return a.sizeUser !== null && !isNaN(a.sizeUser) && a.sizeUser >= _this.minPercent; }).length;
+        var nbCorrectSize = visibleAreas.filter(function (a) { return a.sizeUser !== null && !isNaN(a.sizeUser) && a.sizeUser >= a.minPercent; }).length;
         if (totalSize < 99.99 || totalSize > 100.01 || nbCorrectSize !== visibleAreas.length) {
             var size_1 = Number((100 / visibleAreas.length).toFixed(3));
             visibleAreas.forEach(function (a) { return a.size = size_1; });
@@ -229,13 +230,13 @@ var SplitComponent = (function () {
         }
         var newSizePercentA = newSizePixelA / this.containerSize * 100;
         var newSizePercentB = newSizePixelB / this.containerSize * 100;
-        if (newSizePercentA <= this.minPercent) {
-            newSizePercentA = this.minPercent;
-            newSizePercentB = areaA.size + areaB.size - this.minPercent;
+        if (newSizePercentA <= areaA.minPercent) {
+            newSizePercentA = areaA.minPercent;
+            newSizePercentB = areaA.size + areaB.size - areaA.minPercent;
         }
-        else if (newSizePercentB <= this.minPercent) {
-            newSizePercentB = this.minPercent;
-            newSizePercentA = areaA.size + areaB.size - this.minPercent;
+        else if (newSizePercentB <= areaB.minPercent) {
+            newSizePercentB = areaB.minPercent;
+            newSizePercentA = areaA.size + areaB.size - areaB.minPercent;
         }
         else {
             newSizePercentA = Number(newSizePercentA.toFixed(3));
@@ -321,6 +322,7 @@ var SplitAreaDirective = (function () {
         this._order = null;
         this._size = null;
         this._minSizePixel = 0;
+        this._minSizePercent = 0;
         this._visible = true;
         this.visibility = "block";
         this.eventsLockFct = [];
@@ -328,7 +330,7 @@ var SplitAreaDirective = (function () {
     Object.defineProperty(SplitAreaDirective.prototype, "order", {
         set: function (v) {
             this._order = !isNaN(v) ? v : null;
-            this.split.updateArea(this, this._order, this._size, this._minSizePixel);
+            this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
         },
         enumerable: true,
         configurable: true
@@ -336,7 +338,7 @@ var SplitAreaDirective = (function () {
     Object.defineProperty(SplitAreaDirective.prototype, "size", {
         set: function (v) {
             this._size = !isNaN(v) ? v : null;
-            this.split.updateArea(this, this._order, this._size, this._minSizePixel);
+            this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
         },
         enumerable: true,
         configurable: true
@@ -344,7 +346,15 @@ var SplitAreaDirective = (function () {
     Object.defineProperty(SplitAreaDirective.prototype, "minSizePixel", {
         set: function (v) {
             this._minSizePixel = (!isNaN(v) && v > 0) ? v : 0;
-            this.split.updateArea(this, this._order, this._size, this._minSizePixel);
+            this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SplitAreaDirective.prototype, "minSizePercent", {
+        set: function (v) {
+            this._minSizePercent = (!isNaN(v) && v > 0) ? v : 0;
+            this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
         },
         enumerable: true,
         configurable: true
@@ -367,7 +377,7 @@ var SplitAreaDirective = (function () {
         configurable: true
     });
     SplitAreaDirective.prototype.ngOnInit = function () {
-        this.split.addArea(this, this._order, this._size, this._minSizePixel);
+        this.split.addArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
     };
     SplitAreaDirective.prototype.lockEvents = function () {
         this.eventsLockFct.push(this.renderer.listen(this.elementRef.nativeElement, 'selectstart', function (e) { return false; }));
@@ -418,6 +428,7 @@ SplitAreaDirective.propDecorators = {
     'order': [{ type: _angular_core.Input },],
     'size': [{ type: _angular_core.Input },],
     'minSizePixel': [{ type: _angular_core.Input },],
+    'minSizePercent': [{ type: _angular_core.Input },],
     'visible': [{ type: _angular_core.Input },],
 };
 

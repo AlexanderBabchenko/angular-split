@@ -14,6 +14,7 @@ export interface IAreaData {
     orderUser: number | null;
     order: number;
     minPixel: number;
+    minPercent: number;
 }
 
 interface Point {
@@ -140,26 +141,28 @@ export class SplitComponent implements OnChanges, OnDestroy {
         }
     }
 
-    public addArea(component: SplitAreaDirective, orderUser: number | null, sizeUser: number | null, minPixel: number) {
+    public addArea(component: SplitAreaDirective, orderUser: number | null, sizeUser: number | null, minPixel: number, minPercent: number) {
         this.areas.push({
             component,
             orderUser,
             order: -1,
             sizeUser,
             size: -1,
-            minPixel
+            minPixel,
+            minPercent: minPercent || this.minPercent
         });
 
         this.refresh();
     }
 
-    public updateArea(component: SplitAreaDirective, orderUser: number | null, sizeUser: number | null, minPixel: number) {
+    public updateArea(component: SplitAreaDirective, orderUser: number | null, sizeUser: number | null, minPixel: number, minPercent: number) {
         const item = this.areas.find(a => a.component === component);
 
         if(item) {
             item.orderUser = orderUser;
             item.sizeUser = sizeUser;
             item.minPixel = minPixel;
+            item.minPercent = minPercent || this.minPercent;
 
             this.refresh();
         }
@@ -216,7 +219,7 @@ export class SplitComponent implements OnChanges, OnDestroy {
 
         // SIZES: Set css 'flex-basis' property depending on user input or equal sizes
         const totalSize = visibleAreas.map(a => a.sizeUser).reduce((acc, s) => acc + s, 0);
-        const nbCorrectSize = visibleAreas.filter(a => a.sizeUser !== null && !isNaN(a.sizeUser) && a.sizeUser >= this.minPercent).length;
+        const nbCorrectSize = visibleAreas.filter(a => a.sizeUser !== null && !isNaN(a.sizeUser) && a.sizeUser >= a.minPercent).length;
 
         if(totalSize < 99.99 || totalSize > 100.01 || nbCorrectSize !== visibleAreas.length) {
             const size = Number((100 / visibleAreas.length).toFixed(3));
@@ -322,12 +325,12 @@ export class SplitComponent implements OnChanges, OnDestroy {
         let newSizePercentA = newSizePixelA / this.containerSize * 100;
         let newSizePercentB = newSizePixelB / this.containerSize * 100;
 
-        if(newSizePercentA <= this.minPercent) {
-            newSizePercentA = this.minPercent;
-            newSizePercentB = areaA.size + areaB.size - this.minPercent;
-        } else if(newSizePercentB <= this.minPercent) {
-            newSizePercentB = this.minPercent;
-            newSizePercentA = areaA.size + areaB.size - this.minPercent;
+        if(newSizePercentA <= areaA.minPercent) {
+            newSizePercentA = areaA.minPercent;
+            newSizePercentB = areaA.size + areaB.size - areaA.minPercent;
+        } else if(newSizePercentB <= areaB.minPercent) {
+            newSizePercentB = areaB.minPercent;
+            newSizePercentA = areaA.size + areaB.size - areaB.minPercent;
         } else {
             newSizePercentA = Number(newSizePercentA.toFixed(3));
             newSizePercentB = Number((areaA.size + areaB.size - newSizePercentA).toFixed(3));

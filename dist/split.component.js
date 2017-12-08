@@ -78,23 +78,25 @@ var SplitComponent = (function () {
             this.refresh();
         }
     };
-    SplitComponent.prototype.addArea = function (component, orderUser, sizeUser, minPixel) {
+    SplitComponent.prototype.addArea = function (component, orderUser, sizeUser, minPixel, minPercent) {
         this.areas.push({
             component: component,
             orderUser: orderUser,
             order: -1,
             sizeUser: sizeUser,
             size: -1,
-            minPixel: minPixel
+            minPixel: minPixel,
+            minPercent: minPercent || this.minPercent
         });
         this.refresh();
     };
-    SplitComponent.prototype.updateArea = function (component, orderUser, sizeUser, minPixel) {
+    SplitComponent.prototype.updateArea = function (component, orderUser, sizeUser, minPixel, minPercent) {
         var item = this.areas.find(function (a) { return a.component === component; });
         if (item) {
             item.orderUser = orderUser;
             item.sizeUser = sizeUser;
             item.minPixel = minPixel;
+            item.minPercent = minPercent || this.minPercent;
             this.refresh();
         }
     };
@@ -124,7 +126,6 @@ var SplitComponent = (function () {
         return visibleAreas.length > 0 ? area === visibleAreas[visibleAreas.length - 1] : false;
     };
     SplitComponent.prototype.refresh = function () {
-        var _this = this;
         this.stopDragging();
         var visibleAreas = this.visibleAreas;
         // ORDERS: Set css 'order' property depending on user input or added order
@@ -138,7 +139,7 @@ var SplitComponent = (function () {
         });
         // SIZES: Set css 'flex-basis' property depending on user input or equal sizes
         var totalSize = visibleAreas.map(function (a) { return a.sizeUser; }).reduce(function (acc, s) { return acc + s; }, 0);
-        var nbCorrectSize = visibleAreas.filter(function (a) { return a.sizeUser !== null && !isNaN(a.sizeUser) && a.sizeUser >= _this.minPercent; }).length;
+        var nbCorrectSize = visibleAreas.filter(function (a) { return a.sizeUser !== null && !isNaN(a.sizeUser) && a.sizeUser >= a.minPercent; }).length;
         if (totalSize < 99.99 || totalSize > 100.01 || nbCorrectSize !== visibleAreas.length) {
             var size_1 = Number((100 / visibleAreas.length).toFixed(3));
             visibleAreas.forEach(function (a) { return a.size = size_1; });
@@ -226,13 +227,13 @@ var SplitComponent = (function () {
         }
         var newSizePercentA = newSizePixelA / this.containerSize * 100;
         var newSizePercentB = newSizePixelB / this.containerSize * 100;
-        if (newSizePercentA <= this.minPercent) {
-            newSizePercentA = this.minPercent;
-            newSizePercentB = areaA.size + areaB.size - this.minPercent;
+        if (newSizePercentA <= areaA.minPercent) {
+            newSizePercentA = areaA.minPercent;
+            newSizePercentB = areaA.size + areaB.size - areaA.minPercent;
         }
-        else if (newSizePercentB <= this.minPercent) {
-            newSizePercentB = this.minPercent;
-            newSizePercentA = areaA.size + areaB.size - this.minPercent;
+        else if (newSizePercentB <= areaB.minPercent) {
+            newSizePercentB = areaB.minPercent;
+            newSizePercentA = areaA.size + areaB.size - areaB.minPercent;
         }
         else {
             newSizePercentA = Number(newSizePercentA.toFixed(3));
