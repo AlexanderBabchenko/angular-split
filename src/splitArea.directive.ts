@@ -19,25 +19,39 @@ export class SplitAreaDirective implements OnInit, OnDestroy {
     private _order: number | null = null;
     @Input() set order(v: number) {
         this._order = !isNaN(v) ? v : null;
-        this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
+        this.updateArea();
+    }
+
+    private _autoSize: boolean = false;
+    @Input() set autoSize(v: any) {
+        this._autoSize = !isNaN(v) ? v : false;
+        this._size = null;
+        this._sizePixel = null;
+        this.updateArea();
     }
 
     private _size: number | null = null;
     @Input() set size(v: any) {
-        this._size = !isNaN(v) ? v : null;
-        this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
+        this._size = !isNaN(v) && !this._autoSize ? v : null;
+        this.updateArea();
+    }
+
+    private _sizePixel: number | null = null;
+    @Input() set sizePixel(v: any) {
+        this._sizePixel = !isNaN(v) && !this._autoSize ? v : null;
+        this.updateArea();
     }
 
     private _minSizePixel: number = 0;
     @Input() set minSizePixel(v: number) {
         this._minSizePixel = (!isNaN(v) && v > 0) ? v : 0;
-        this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
+        this.updateArea();
     }
 
     private _minSizePercent: number = 0;
     @Input() set minSizePercent(v: number) {
         this._minSizePercent = (!isNaN(v) && v > 0) ? v : 0;
-        this.split.updateArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
+        this.updateArea();
     }
 
     private _visible: boolean = true;
@@ -65,8 +79,12 @@ export class SplitAreaDirective implements OnInit, OnDestroy {
         private renderer: Renderer,
         private split: SplitComponent) {}
 
+    private updateArea() {
+        this.split.updateArea(this, this._order, this._autoSize, this._size, this._sizePixel, this._minSizePixel, this._minSizePercent);
+    }
+
     public ngOnInit() {
-        this.split.addArea(this, this._order, this._size, this._minSizePixel, this._minSizePercent);
+        this.split.addArea(this, this._order, this._autoSize, this._size, this._sizePixel, this._minSizePixel, this._minSizePercent);
     }
 
     public lockEvents() {

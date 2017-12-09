@@ -5,7 +5,9 @@ import 'rxjs/add/operator/debounceTime';
 import { SplitAreaDirective } from './splitArea.directive';
 export interface IAreaData {
     component: SplitAreaDirective;
+    autoSize: boolean;
     sizeUser: number | null;
+    sizePixelUser: number | null;
     size: number;
     orderUser: number | null;
     order: number;
@@ -43,8 +45,8 @@ export declare class SplitComponent implements OnChanges, OnDestroy {
     private eventsDragFct;
     constructor(cdRef: ChangeDetectorRef, elementRef: ElementRef, renderer: Renderer);
     ngOnChanges(changes: SimpleChanges): void;
-    addArea(component: SplitAreaDirective, orderUser: number | null, sizeUser: number | null, minPixel: number, minPercent: number): void;
-    updateArea(component: SplitAreaDirective, orderUser: number | null, sizeUser: number | null, minPixel: number, minPercent: number): void;
+    addArea(component: SplitAreaDirective, orderUser: number | null, autoSize: boolean, sizeUser: number | null, sizePixelUser: number | null, minPixel: number, minPercent: number): void;
+    updateArea(component: SplitAreaDirective, orderUser: number | null, autoSize: boolean, sizeUser: number | null, sizePixelUser: number | null, minPixel: number, minPercent: number): void;
     removeArea(area: SplitAreaDirective): void;
     hideArea(area: SplitAreaDirective): void;
     showArea(area: SplitAreaDirective): void;

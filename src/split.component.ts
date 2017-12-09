@@ -9,7 +9,9 @@ import { SplitAreaDirective } from './splitArea.directive';
 
 export interface IAreaData {
     component: SplitAreaDirective;
+    autoSize: boolean;
     sizeUser: number | null;
+    sizePixelUser: number | null;
     size: number;
     orderUser: number | null;
     order: number;
@@ -141,12 +143,14 @@ export class SplitComponent implements OnChanges, OnDestroy {
         }
     }
 
-    public addArea(component: SplitAreaDirective, orderUser: number | null, sizeUser: number | null, minPixel: number, minPercent: number) {
+    public addArea(component: SplitAreaDirective, orderUser: number | null, autoSize: boolean, sizeUser: number | null, sizePixelUser: number | null, minPixel: number, minPercent: number) {
         this.areas.push({
             component,
             orderUser,
             order: -1,
+            autoSize,
             sizeUser,
+            sizePixelUser,
             size: -1,
             minPixel,
             minPercent: minPercent || this.minPercent
@@ -155,12 +159,14 @@ export class SplitComponent implements OnChanges, OnDestroy {
         this.refresh();
     }
 
-    public updateArea(component: SplitAreaDirective, orderUser: number | null, sizeUser: number | null, minPixel: number, minPercent: number) {
+    public updateArea(component: SplitAreaDirective, orderUser: number | null, autoSize: boolean, sizeUser: number | null, sizePixelUser: number | null, minPixel: number, minPercent: number) {
         const item = this.areas.find(a => a.component === component);
 
         if(item) {
             item.orderUser = orderUser;
+            item.autoSize = autoSize;
             item.sizeUser = sizeUser;
+            item.sizePixelUser = sizePixelUser,
             item.minPixel = minPixel;
             item.minPercent = minPercent || this.minPercent;
 
@@ -217,7 +223,23 @@ export class SplitComponent implements OnChanges, OnDestroy {
             a.component.setStyle('order', a.order);
         });
 
+        // PIXEL SIZES: update minPercent size if minPixel size set. And calculate persent size according to specified pixel size
+        const prop = (this.direction === 'horizontal') ? 'offsetWidth' : 'offsetHeight';
+        const containerSize = this.elementRef.nativeElement[prop];
+        this.areas.forEach((a) => {
+            a.sizeUser = a.sizePixelUser ? a.sizePixelUser/containerSize*100 : a.sizeUser;
+            a.minPercent = a.minPixel ? a.minPixel/containerSize*100 : a.minPercent;
+        });
+
         // SIZES: Set css 'flex-basis' property depending on user input or equal sizes
+        const autoSizedAreasCount = visibleAreas.filter(a => a.autoSize).length;
+        if (autoSizedAreasCount > 0) {
+            const presetSize = visibleAreas.filter(a => !a.autoSize).map(a => a.sizeUser).reduce((acc, s) => acc + s, 0);
+            visibleAreas.forEach((a) => {
+                a.sizeUser = a.autoSize ? (100 - presetSize)/autoSizedAreasCount : a.sizeUser;
+            });
+        }
+
         const totalSize = visibleAreas.map(a => a.sizeUser).reduce((acc, s) => acc + s, 0);
         const nbCorrectSize = visibleAreas.filter(a => a.sizeUser !== null && !isNaN(a.sizeUser) && a.sizeUser >= a.minPercent).length;
 

@@ -78,24 +78,28 @@ var SplitComponent = (function () {
             this.refresh();
         }
     };
-    SplitComponent.prototype.addArea = function (component, orderUser, sizeUser, minPixel, minPercent) {
+    SplitComponent.prototype.addArea = function (component, orderUser, autoSize, sizeUser, sizePixelUser, minPixel, minPercent) {
         this.areas.push({
             component: component,
             orderUser: orderUser,
             order: -1,
+            autoSize: autoSize,
             sizeUser: sizeUser,
+            sizePixelUser: sizePixelUser,
             size: -1,
             minPixel: minPixel,
             minPercent: minPercent || this.minPercent
         });
         this.refresh();
     };
-    SplitComponent.prototype.updateArea = function (component, orderUser, sizeUser, minPixel, minPercent) {
+    SplitComponent.prototype.updateArea = function (component, orderUser, autoSize, sizeUser, sizePixelUser, minPixel, minPercent) {
         var item = this.areas.find(function (a) { return a.component === component; });
         if (item) {
             item.orderUser = orderUser;
+            item.autoSize = autoSize;
             item.sizeUser = sizeUser;
-            item.minPixel = minPixel;
+            item.sizePixelUser = sizePixelUser,
+                item.minPixel = minPixel;
             item.minPercent = minPercent || this.minPercent;
             this.refresh();
         }
@@ -137,7 +141,21 @@ var SplitComponent = (function () {
             a.order = i * 2;
             a.component.setStyle('order', a.order);
         });
+        // PIXEL SIZES: update minPercent size if minPixel size set. And calculate persent size according to specified pixel size
+        var prop = (this.direction === 'horizontal') ? 'offsetWidth' : 'offsetHeight';
+        var containerSize = this.elementRef.nativeElement[prop];
+        this.areas.forEach(function (a) {
+            a.sizeUser = a.sizePixelUser ? a.sizePixelUser / containerSize * 100 : a.sizeUser;
+            a.minPercent = a.minPixel ? a.minPixel / containerSize * 100 : a.minPercent;
+        });
         // SIZES: Set css 'flex-basis' property depending on user input or equal sizes
+        var autoSizedAreasCount = visibleAreas.filter(function (a) { return a.autoSize; }).length;
+        if (autoSizedAreasCount > 0) {
+            var presetSize_1 = visibleAreas.filter(function (a) { return !a.autoSize; }).map(function (a) { return a.sizeUser; }).reduce(function (acc, s) { return acc + s; }, 0);
+            visibleAreas.forEach(function (a) {
+                a.sizeUser = a.autoSize ? (100 - presetSize_1) / autoSizedAreasCount : a.sizeUser;
+            });
+        }
         var totalSize = visibleAreas.map(function (a) { return a.sizeUser; }).reduce(function (acc, s) { return acc + s; }, 0);
         var nbCorrectSize = visibleAreas.filter(function (a) { return a.sizeUser !== null && !isNaN(a.sizeUser) && a.sizeUser >= a.minPercent; }).length;
         if (totalSize < 99.99 || totalSize > 100.01 || nbCorrectSize !== visibleAreas.length) {
