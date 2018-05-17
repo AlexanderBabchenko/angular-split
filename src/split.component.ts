@@ -87,6 +87,7 @@ export class SplitComponent implements OnChanges, OnDestroy {
     @Input() width: number;
     @Input() height: number;
     @Input() gutterSize: number = 10;
+    @Input() gutterInvisible: boolean = false;
     @Input() disabled: boolean = false;
     @Input() visibleTransition: boolean = false;
 
@@ -257,8 +258,16 @@ export class SplitComponent implements OnChanges, OnDestroy {
     private refreshStyleSizes() {
         const visibleAreas = this.visibleAreas;
 
-        const f = this.gutterSize * this.nbGutters / visibleAreas.length;
-        visibleAreas.forEach(a => a.component.setStyle('flex-basis', `calc( ${a.size}% - ${f}px )`));
+        if (this.gutterInvisible) {
+            visibleAreas.forEach(a => {
+                a.component.setStyle('flex-basis', `${a.size}%`);
+            });
+        } else {
+            const f = this.gutterSize * this.nbGutters / visibleAreas.length;
+            visibleAreas.forEach(a => {
+                a.component.setStyle('flex-basis', `calc( ${a.size}% - ${f}px )`);
+            });
+        }
     }
 
     public startDragging(startEvent: MouseEvent | TouchEvent, gutterOrder: number) {

@@ -11,6 +11,7 @@ var SplitComponent = (function () {
         this.renderer = renderer;
         this.direction = 'horizontal';
         this.gutterSize = 10;
+        this.gutterInvisible = false;
         this.disabled = false;
         this.visibleTransition = false;
         this.dragStart = new _angular_core.EventEmitter(false);
@@ -173,8 +174,17 @@ var SplitComponent = (function () {
     };
     SplitComponent.prototype.refreshStyleSizes = function () {
         var visibleAreas = this.visibleAreas;
-        var f = this.gutterSize * this.nbGutters / visibleAreas.length;
-        visibleAreas.forEach(function (a) { return a.component.setStyle('flex-basis', "calc( " + a.size + "% - " + f + "px )"); });
+        if (this.gutterInvisible) {
+            visibleAreas.forEach(function (a) {
+                a.component.setStyle('flex-basis', a.size + "%");
+            });
+        }
+        else {
+            var f_1 = this.gutterSize * this.nbGutters / visibleAreas.length;
+            visibleAreas.forEach(function (a) {
+                a.component.setStyle('flex-basis', "calc( " + a.size + "% - " + f_1 + "px )");
+            });
+        }
     };
     SplitComponent.prototype.startDragging = function (startEvent, gutterOrder) {
         var _this = this;
@@ -322,6 +332,7 @@ SplitComponent.propDecorators = {
     'width': [{ type: _angular_core.Input },],
     'height': [{ type: _angular_core.Input },],
     'gutterSize': [{ type: _angular_core.Input },],
+    'gutterInvisible': [{ type: _angular_core.Input },],
     'disabled': [{ type: _angular_core.Input },],
     'visibleTransition': [{ type: _angular_core.Input },],
     'dragStart': [{ type: _angular_core.Output },],
