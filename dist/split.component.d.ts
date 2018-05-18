@@ -22,6 +22,7 @@ export declare class SplitComponent implements OnChanges, OnDestroy {
     width: number;
     height: number;
     gutterSize: number;
+    gutterInvisible: boolean;
     disabled: boolean;
     visibleTransition: boolean;
     dragStart: EventEmitter<number[]>;
