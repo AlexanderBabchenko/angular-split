@@ -30,6 +30,7 @@ export declare class SplitComponent implements OnChanges, OnDestroy {
     dragEnd: EventEmitter<number[]>;
     visibleTransitionEndInternal: Subject<number[]>;
     visibleTransitionEnd: Observable<number[]>;
+    gutterClick: EventEmitter<number>;
     readonly styleFlexDirection: boolean;
     readonly styleFlexDirectionStyle: string;
     readonly dragging: boolean;
@@ -58,6 +59,7 @@ export declare class SplitComponent implements OnChanges, OnDestroy {
     private dragEvent(event, start, areaA, areaB);
     private drag(start, end, areaA, areaB);
     private stopDragging();
+    onGutterClick(index: number): void;
     notify(type: string): void;
     ngOnDestroy(): void;
 }

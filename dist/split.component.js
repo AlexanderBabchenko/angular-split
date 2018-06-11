@@ -16,6 +16,7 @@ var SplitComponent = (function () {
         this.dragEnd = new EventEmitter(false);
         this.visibleTransitionEndInternal = new Subject();
         this.visibleTransitionEnd = this.visibleTransitionEndInternal.asObservable().debounceTime(20);
+        this.gutterClick = new EventEmitter(false);
         this.areas = [];
         this.minPercent = 5;
         this.isDragging = false;
@@ -292,6 +293,9 @@ var SplitComponent = (function () {
         this.isDragging = false;
         this.notify('end');
     };
+    SplitComponent.prototype.onGutterClick = function (index) {
+        this.gutterClick.emit(index);
+    };
     SplitComponent.prototype.notify = function (type) {
         var data = this.visibleAreas.map(function (a) { return a.size; });
         switch (type) {
@@ -316,7 +320,7 @@ SplitComponent.decorators = [
                 selector: 'split',
                 changeDetection: ChangeDetectionStrategy.OnPush,
                 styles: ["\n        :host {\n            display: flex;\n            flex-wrap: nowrap;\n            justify-content: flex-start;\n            align-items: stretch;\n            flex-direction: row;\n        }\n\n        :host.vertical {\n            flex-direction: column;\n        }\n\n        split-gutter {\n            flex-grow: 0;\n            flex-shrink: 0;\n            background-color: #eeeeee;\n            background-position: center center;\n            background-repeat: no-repeat;\n        }\n\n        :host.vertical split-gutter {\n            width: 100%;\n        }\n\n        :host /deep/ split-area {\n            transition: flex-basis 0.3s;\n        }  \n\n        :host.notransition /deep/ split-area {\n            transition: none !important;\n        }      \n\n        :host /deep/ split-area.hided {\n            flex-basis: 0 !important;\n            overflow: hidden !important;\n        }      \n\n        :host.vertical /deep/ split-area.hided {\n            max-width: 0;\n        }\n    "],
-                template: "\n        <ng-content></ng-content>\n        <ng-template ngFor let-area [ngForOf]=\"areas\" let-index=\"index\" let-last=\"last\">\n            <split-gutter *ngIf=\"last === false && area.component.visible === true && !isLastVisibleArea(area)\" \n                          [order]=\"index*2+1\"\n                          [direction]=\"direction\"\n                          [size]=\"gutterSize\"\n                          [disabled]=\"disabled\"\n                          (mousedown)=\"startDragging($event, index*2+1)\"\n                          (touchstart)=\"startDragging($event, index*2+1)\"></split-gutter>\n        </ng-template>",
+                template: "\n        <ng-content></ng-content>\n        <ng-template ngFor let-area [ngForOf]=\"areas\" let-index=\"index\" let-last=\"last\">\n            <split-gutter *ngIf=\"last === false && area.component.visible === true && !isLastVisibleArea(area)\" \n                          [order]=\"index*2+1\"\n                          [direction]=\"direction\"\n                          [size]=\"gutterSize\"\n                          [disabled]=\"disabled\"\n                          (click)=\"onGutterClick(index)\"\n                          (mousedown)=\"startDragging($event, index*2+1)\"\n                          (touchstart)=\"startDragging($event, index*2+1)\"></split-gutter>\n        </ng-template>",
             },] },
 ];
 /** @nocollapse */
@@ -337,6 +341,7 @@ SplitComponent.propDecorators = {
     'dragProgress': [{ type: Output },],
     'dragEnd': [{ type: Output },],
     'visibleTransitionEnd': [{ type: Output },],
+    'gutterClick': [{ type: Output },],
     'styleFlexDirection': [{ type: HostBinding, args: ['class.vertical',] },],
     'styleFlexDirectionStyle': [{ type: HostBinding, args: ['style.flex-direction',] },],
     'dragging': [{ type: HostBinding, args: ['class.notransition',] },],

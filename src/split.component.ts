@@ -78,6 +78,7 @@ interface Point {
                           [direction]="direction"
                           [size]="gutterSize"
                           [disabled]="disabled"
+                          (click)="onGutterClick(index)"
                           (mousedown)="startDragging($event, index*2+1)"
                           (touchstart)="startDragging($event, index*2+1)"></split-gutter>
         </ng-template>`,
@@ -96,6 +97,7 @@ export class SplitComponent implements OnChanges, OnDestroy {
     @Output() dragEnd = new EventEmitter<Array<number>>(false);
     visibleTransitionEndInternal = new Subject<Array<number>>();
     @Output() visibleTransitionEnd = this.visibleTransitionEndInternal.asObservable().debounceTime(20);
+    @Output() gutterClick = new EventEmitter<number>(false);
 
     @HostBinding('class.vertical') get styleFlexDirection() {
         return this.direction === 'vertical';
@@ -397,6 +399,10 @@ export class SplitComponent implements OnChanges, OnDestroy {
 
         this.isDragging = false;
         this.notify('end');
+    }
+
+    onGutterClick(index: number) {
+        this.gutterClick.emit(index);
     }
 
     notify(type: string) {
