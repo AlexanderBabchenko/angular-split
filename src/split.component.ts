@@ -78,7 +78,6 @@ interface Point {
                           [direction]="direction"
                           [size]="gutterSize"
                           [disabled]="disabled"
-                          (click)="onGutterClick(index)"
                           (mousedown)="startDragging($event, index*2+1)"
                           (touchstart)="startDragging($event, index*2+1)"></split-gutter>
         </ng-template>`,
@@ -135,6 +134,8 @@ export class SplitComponent implements OnChanges, OnDestroy {
     private areaASize: number = 0;
     private areaBSize: number = 0;
     private eventsDragFct: Array<Function> = [];
+    private draggingWithoutMove: boolean = false;
+    private currentGutterNum: number = 0;
 
     constructor(private cdRef: ChangeDetectorRef,
         private elementRef: ElementRef,
@@ -275,6 +276,9 @@ export class SplitComponent implements OnChanges, OnDestroy {
     public startDragging(startEvent: MouseEvent | TouchEvent, gutterOrder: number) {
         startEvent.preventDefault();
 
+        this.currentGutterNum = gutterOrder;
+        this.draggingWithoutMove = true;
+
         if(this.disabled) {
             return;
         }
@@ -342,6 +346,7 @@ export class SplitComponent implements OnChanges, OnDestroy {
             return;
         }
 
+        this.draggingWithoutMove = false;
         this.drag(start, end, areaA, areaB);
     }
 
@@ -397,12 +402,14 @@ export class SplitComponent implements OnChanges, OnDestroy {
         this.areaASize = 0;
         this.areaBSize = 0;
 
-        this.isDragging = false;
-        this.notify('end');
-    }
+        if(this.draggingWithoutMove === true) {
+            this.gutterClick.emit(this.currentGutterNum);
+        } else {
+            this.notify('end');
+        }
 
-    onGutterClick(index: number) {
-        this.gutterClick.emit(index);
+        this.isDragging = false;
+        this.draggingWithoutMove = false;
     }
 
     notify(type: string) {

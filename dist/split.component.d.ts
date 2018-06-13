@@ -45,6 +45,8 @@ export declare class SplitComponent implements OnChanges, OnDestroy {
     private areaASize;
     private areaBSize;
     private eventsDragFct;
+    private draggingWithoutMove;
+    private currentGutterNum;
     constructor(cdRef: ChangeDetectorRef, elementRef: ElementRef, renderer: Renderer);
     ngOnChanges(changes: SimpleChanges): void;
     addArea(component: SplitAreaDirective, orderUser: number | null, autoSize: boolean, sizeUser: number | null, sizePixelUser: number | null, minPixel: number, minPercent: number): void;
@@ -59,7 +61,6 @@ export declare class SplitComponent implements OnChanges, OnDestroy {
     private dragEvent(event, start, areaA, areaB);
     private drag(start, end, areaA, areaB);
     private stopDragging();
-    onGutterClick(index: number): void;
     notify(type: string): void;
     ngOnDestroy(): void;
 }

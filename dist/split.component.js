@@ -24,6 +24,8 @@ var SplitComponent = (function () {
         this.areaASize = 0;
         this.areaBSize = 0;
         this.eventsDragFct = [];
+        this.draggingWithoutMove = false;
+        this.currentGutterNum = 0;
     }
     Object.defineProperty(SplitComponent.prototype, "styleFlexDirection", {
         get: function () {
@@ -187,6 +189,8 @@ var SplitComponent = (function () {
     SplitComponent.prototype.startDragging = function (startEvent, gutterOrder) {
         var _this = this;
         startEvent.preventDefault();
+        this.currentGutterNum = gutterOrder;
+        this.draggingWithoutMove = true;
         if (this.disabled) {
             return;
         }
@@ -245,6 +249,7 @@ var SplitComponent = (function () {
         else {
             return;
         }
+        this.draggingWithoutMove = false;
         this.drag(start, end, areaA, areaB);
     };
     SplitComponent.prototype.drag = function (start, end, areaA, areaB) {
@@ -290,11 +295,14 @@ var SplitComponent = (function () {
         this.containerSize = 0;
         this.areaASize = 0;
         this.areaBSize = 0;
+        if (this.draggingWithoutMove === true) {
+            this.gutterClick.emit(this.currentGutterNum);
+        }
+        else {
+            this.notify('end');
+        }
         this.isDragging = false;
-        this.notify('end');
-    };
-    SplitComponent.prototype.onGutterClick = function (index) {
-        this.gutterClick.emit(index);
+        this.draggingWithoutMove = false;
     };
     SplitComponent.prototype.notify = function (type) {
         var data = this.visibleAreas.map(function (a) { return a.size; });
@@ -320,7 +328,7 @@ SplitComponent.decorators = [
                 selector: 'split',
                 changeDetection: ChangeDetectionStrategy.OnPush,
                 styles: ["\n        :host {\n            display: flex;\n            flex-wrap: nowrap;\n            justify-content: flex-start;\n            align-items: stretch;\n            flex-direction: row;\n        }\n\n        :host.vertical {\n            flex-direction: column;\n        }\n\n        split-gutter {\n            flex-grow: 0;\n            flex-shrink: 0;\n            background-color: #eeeeee;\n            background-position: center center;\n            background-repeat: no-repeat;\n        }\n\n        :host.vertical split-gutter {\n            width: 100%;\n        }\n\n        :host /deep/ split-area {\n            transition: flex-basis 0.3s;\n        }  \n\n        :host.notransition /deep/ split-area {\n            transition: none !important;\n        }      \n\n        :host /deep/ split-area.hided {\n            flex-basis: 0 !important;\n            overflow: hidden !important;\n        }      \n\n        :host.vertical /deep/ split-area.hided {\n            max-width: 0;\n        }\n    "],
-                template: "\n        <ng-content></ng-content>\n        <ng-template ngFor let-area [ngForOf]=\"areas\" let-index=\"index\" let-last=\"last\">\n            <split-gutter *ngIf=\"last === false && area.component.visible === true && !isLastVisibleArea(area)\" \n                          [order]=\"index*2+1\"\n                          [direction]=\"direction\"\n                          [size]=\"gutterSize\"\n                          [disabled]=\"disabled\"\n                          (click)=\"onGutterClick(index)\"\n                          (mousedown)=\"startDragging($event, index*2+1)\"\n                          (touchstart)=\"startDragging($event, index*2+1)\"></split-gutter>\n        </ng-template>",
+                template: "\n        <ng-content></ng-content>\n        <ng-template ngFor let-area [ngForOf]=\"areas\" let-index=\"index\" let-last=\"last\">\n            <split-gutter *ngIf=\"last === false && area.component.visible === true && !isLastVisibleArea(area)\" \n                          [order]=\"index*2+1\"\n                          [direction]=\"direction\"\n                          [size]=\"gutterSize\"\n                          [disabled]=\"disabled\"\n                          (mousedown)=\"startDragging($event, index*2+1)\"\n                          (touchstart)=\"startDragging($event, index*2+1)\"></split-gutter>\n        </ng-template>",
             },] },
 ];
 /** @nocollapse */
