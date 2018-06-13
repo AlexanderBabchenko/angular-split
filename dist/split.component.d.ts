@@ -30,7 +30,10 @@ export declare class SplitComponent implements OnChanges, OnDestroy {
     dragEnd: EventEmitter<number[]>;
     visibleTransitionEndInternal: Subject<number[]>;
     visibleTransitionEnd: Observable<number[]>;
-    gutterClick: EventEmitter<number>;
+    gutterClick: EventEmitter<{
+        gutterNum: number;
+        sizes: number[];
+    }>;
     readonly styleFlexDirection: boolean;
     readonly styleFlexDirectionStyle: string;
     readonly dragging: boolean;

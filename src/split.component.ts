@@ -96,7 +96,7 @@ export class SplitComponent implements OnChanges, OnDestroy {
     @Output() dragEnd = new EventEmitter<Array<number>>(false);
     visibleTransitionEndInternal = new Subject<Array<number>>();
     @Output() visibleTransitionEnd = this.visibleTransitionEndInternal.asObservable().debounceTime(20);
-    @Output() gutterClick = new EventEmitter<number>(false);
+    @Output() gutterClick = new EventEmitter<{gutterNum: number, sizes: number[]}>(false);
 
     @HostBinding('class.vertical') get styleFlexDirection() {
         return this.direction === 'vertical';
@@ -276,7 +276,7 @@ export class SplitComponent implements OnChanges, OnDestroy {
     public startDragging(startEvent: MouseEvent | TouchEvent, gutterOrder: number) {
         startEvent.preventDefault();
 
-        this.currentGutterNum = gutterOrder;
+        this.currentGutterNum = (gutterOrder - 1) / 2;
         this.draggingWithoutMove = true;
 
         if(this.disabled) {
@@ -403,7 +403,8 @@ export class SplitComponent implements OnChanges, OnDestroy {
         this.areaBSize = 0;
 
         if(this.draggingWithoutMove === true) {
-            this.gutterClick.emit(this.currentGutterNum);
+            const data: Array<number> = this.visibleAreas.map(a => a.size);
+            this.gutterClick.emit({gutterNum: this.currentGutterNum, sizes: data});
         } else {
             this.notify('end');
         }

@@ -189,7 +189,7 @@ var SplitComponent = (function () {
     SplitComponent.prototype.startDragging = function (startEvent, gutterOrder) {
         var _this = this;
         startEvent.preventDefault();
-        this.currentGutterNum = gutterOrder;
+        this.currentGutterNum = (gutterOrder - 1) / 2;
         this.draggingWithoutMove = true;
         if (this.disabled) {
             return;
@@ -296,7 +296,8 @@ var SplitComponent = (function () {
         this.areaASize = 0;
         this.areaBSize = 0;
         if (this.draggingWithoutMove === true) {
-            this.gutterClick.emit(this.currentGutterNum);
+            var data = this.visibleAreas.map(function (a) { return a.size; });
+            this.gutterClick.emit({ gutterNum: this.currentGutterNum, sizes: data });
         }
         else {
             this.notify('end');
